@@ -10,11 +10,13 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    // 📝 REGISTER (DAFTAR)
+    // ================================
+    // REGISTER
+    // ================================
     public function daftar(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',   // WAJIB
             'email' => 'required|string|email|unique:users',
             'username' => 'required|string|unique:users,username|max:50',
             'full_name' => 'nullable|string|max:255',
@@ -27,7 +29,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'username' => $request->username,
-            'full_name' => $request->full_name,
+            'full_name' => $request->full_name ?? $request->name,
             'tanggal_lahir' => $request->tanggal_lahir,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
@@ -39,7 +41,9 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // 🔐 LOGIN (MASUK)
+    // ================================
+    // LOGIN
+    // ================================
     public function masuk(Request $request)
     {
         $request->validate([
@@ -61,14 +65,18 @@ class AuthController extends Controller
             'message' => 'Login berhasil',
             'token' => $token,
             'user' => $user
-        ]);
+        ], 200);
     }
 
-    // 🚪 LOGOUT (KELUAR)
+    // ================================
+    // LOGOUT
+    // ================================
     public function keluar(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Berhasil keluar']);
+        return response()->json([
+            'message' => 'Berhasil keluar'
+        ]);
     }
 }
