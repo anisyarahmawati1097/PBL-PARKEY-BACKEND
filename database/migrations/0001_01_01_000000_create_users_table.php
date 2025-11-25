@@ -6,17 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+
+            // Kolom tambahan
+            $table->string('fullname')->nullable();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            // Perbaikan: kolom tanggal lahir
+            $table->date('tanggal_lahir')->nullable();
+
+            // Perbaikan: kolom phone
+            $table->string('phone')->nullable();
+
+            // Default kolom remember & timestamps
             $table->rememberToken();
             $table->timestamps();
         });
@@ -37,9 +45,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');
