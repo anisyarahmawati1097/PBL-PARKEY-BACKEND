@@ -24,6 +24,10 @@ return new class extends Migration
             // Perbaikan: kolom phone
             $table->string('phone')->nullable();
 
+            // Relationship for Database Role.
+            $table->unsignedBigInteger('roles_id')->default(1);
+            $table->foreign('roles_id')->references('id')->on('roles')->onDelete('cascade');
+            
             // Default kolom remember & timestamps
             $table->rememberToken();
             $table->timestamps();

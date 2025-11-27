@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -45,7 +49,8 @@ class AuthController extends Controller
             'password' => 'required|string'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        // Add Relationship roles to users.
+        $user = User::where('email', $request->email)->with("roles")->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -65,6 +70,8 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone,
                 'tanggal_lahir' => $user->tanggal_lahir,
+                // Add Response Role .
+                'role' => $user->roles->role_name
             ]
         ], 200);
     }
@@ -102,5 +109,77 @@ class AuthController extends Controller
             'message' => 'Profil berhasil diperbarui',
             'user' => $user
         ]);
+    }
+
+    // LUPA PASSWORD (KIRIM TOKEN)
+    public function lupaPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Email tidak terdaftar'
+            ], 404);
+        }
+
+        // Buat token
+        $token = Str::random(60);
+
+        // Simpan token
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => $token,
+                'created_at' => Carbon::now()
+            ]
+        );
+
+        // Kirim email token
+        Mail::raw("Gunakan token ini untuk reset password Anda: $token", function ($message) use ($request) {
+            $message->to($request->email)
+                    ->subject('Reset Password');
+        });
+
+        return response()->json([
+            'message' => 'Token reset password telah dikirim ke email'
+        ], 200);
+    }
+
+    // RESET PASSWORD
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'token' => 'required',
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        // Cari token
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$reset) {
+            return response()->json([
+                'message' => 'Token tidak valid'
+            ], 400);
+        }
+
+        // Update password user
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Hapus token
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json([
+            'message' => 'Password berhasil direset'
+        ], 200);
     }
 }
