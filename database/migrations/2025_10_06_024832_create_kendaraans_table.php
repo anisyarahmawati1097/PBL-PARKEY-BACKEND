@@ -10,16 +10,20 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('kendaraans', function (Blueprint $table) {
-    $table->id();
-    $table->string('plat_nomor');
-    $table->string('jenis');
-    $table->string('pemilik');
-    $table->timestamps();
-        });
-    }
-
+{
+    Schema::create('kendaraans', function (Blueprint $table) {
+        $table->id();
+        $table->string('plat_nomor');
+        $table->string('jenis'); // Mobil/Motor/Truk/Pickup
+        $table->string('merk');
+        $table->string('model');
+        $table->string('warna');
+        $table->string('tahun');
+        $table->string('foto')->nullable(); // path upload foto
+        $table->string('pemilik')->nullable(); // kalau memang butuh
+        $table->timestamps();
+    });
+}
     /**
      * Reverse the migrations.
      */

@@ -12,8 +12,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // ROUTE KENDARAAN
+Route::post('/kendaraan/store', [KendaraanController::class, 'store']);
 Route::get('/kendaraan', [KendaraanController::class, 'index']);
-Route::post('/kendaraan', [KendaraanController::class, 'store']);
+Route::delete('/kendaraan/{id}', [KendaraanController::class, 'destroy']);
 
 // AUTH ROUTES
 Route::post('/daftar', [AuthController::class, 'daftar']);
@@ -22,6 +23,7 @@ Route::middleware('auth:sanctum')->post('/keluar', [AuthController::class, 'kelu
 Route::middleware('auth:sanctum')->post('/update-profile', [AuthController::class, 'update']);
 Route::post('/lupa-password', [AuthController::class, 'lupaPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
 
 // public routes
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
