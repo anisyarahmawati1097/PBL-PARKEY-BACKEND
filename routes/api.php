@@ -15,6 +15,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/kendaraan/store', [KendaraanController::class, 'store']);
 Route::get('/kendaraan', [KendaraanController::class, 'index']);
 Route::delete('/kendaraan/{id}', [KendaraanController::class, 'destroy']);
+Route::post('/kendaraan/park', [KendaraanController::class, "park"]);
+
+// WEBHOOK PAYMENT
+Route::post('/payment/webhook', [GenerateQRController::class, "webhook"]);
 
 // AUTH ROUTES
 Route::post('/daftar', [AuthController::class, 'daftar']);

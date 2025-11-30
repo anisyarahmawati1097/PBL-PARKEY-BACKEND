@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-
             // Perbaikan: kolom tanggal lahir
             $table->date('tanggal_lahir')->nullable();
 
@@ -26,8 +25,8 @@ return new class extends Migration
 
             // Relationship for Database Role.
             $table->unsignedBigInteger('roles_id')->default(1);
-            $table->foreign('roles_id')->references('id')->on('roles')->onDelete('cascade');
-            
+            $table->foreign('roles_id')->references('id')->on('roles');
+
             // Default kolom remember & timestamps
             $table->rememberToken();
             $table->timestamps();

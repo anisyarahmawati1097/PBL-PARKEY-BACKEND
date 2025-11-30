@@ -25,7 +25,13 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    public function roles() {
+    public function kendaraans()
+    {
+        return $this->hasMany(Kendaraan::class);
+    }
+
+    public function roles()
+    {
         return $this->belongsTo(Roles::class);
     }
 }

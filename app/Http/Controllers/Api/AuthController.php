@@ -71,7 +71,7 @@ class AuthController extends Controller
                 'phone' => $user->phone,
                 'tanggal_lahir' => $user->tanggal_lahir,
                 // Add Response Role .
-                'role' => $user->roles->role_name
+                'role' => $user->roles->role_name,
             ]
         ], 200);
     }

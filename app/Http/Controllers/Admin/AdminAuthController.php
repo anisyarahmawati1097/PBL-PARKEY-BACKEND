@@ -7,13 +7,12 @@ use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-
 class AdminAuthController extends Controller
 {
     /**
      * Login Admin
      */
-    public function login(Request $request)
+public function login(Request $request)
 {
     $request->validate([
         'username' => 'required|string',

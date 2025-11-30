@@ -14,6 +14,18 @@ class Kendaraan extends Model
         'tahun',
         'warna',
         'foto',
-        'pemilik'
+        'qris',
+        'users_id',
+        'pemilik',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function parkirs()
+    {
+        return $this->hasMany(Parkir::class, 'kendaraans_id');
+    }
 }
