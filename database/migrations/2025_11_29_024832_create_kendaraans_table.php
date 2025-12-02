@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('foto')->nullable(); // path upload foto
             $table->string('pemilik')->nullable(); // kalau memang butuh
 
-            $table->unsignedBigInteger('users_id');
+            $table->unsignedBigInteger('users_id')->nullable();
             $table->foreign('users_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->timestamps();

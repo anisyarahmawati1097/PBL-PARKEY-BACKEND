@@ -12,78 +12,32 @@ use App\Models\Parkir;
 
 class KendaraanController extends Controller
 {
-    public function park(Request $request, GenerateQRPayment $generateQRPayment)
-    {
-        $request->validate(['plat_nomor' => 'required', 'type' => 'required']);
-        if (!$request->has("plat_nomor")) {
-            return response()->json(["message" => "Parameter untuk plat nomor dibutuhkan."], 309);
-        }
+    // ... kode park() seperti sebelumnya ...
+    public function index(Request $request)
+{
+    $userId = $request->query('user_id');
 
-        $searchKendaraan = Kendaraan::where("plat_nomor", $request->plat_nomor)->first();
-
-        if ($request->get("type") == 'in') {
-            // Revisi: tambahkan harga default 0
-            $createParkir = Parkir::create([
-                "masuk" => now('Asia/Jakarta'),
-                "kendaraans_id" => $searchKendaraan->id,
-                "parkir_id" => strtoupper(Str::random(6)),
-                "harga" => 0
-            ])->load("kendaraans");
-
-            return $createParkir;
-        }
-
-        if ($request->get("type") == 'out') {
-            $updateParkir = $searchKendaraan->parkirs()->latest()->first();
-            if (!$updateParkir) {
-                return response()->json(["message" => "Kendaraan tidak sedang parkir."], 404);
-            }
-
-            $waktu_keluar = now('Asia/Jakarta');
-            $selisih = $updateParkir->masuk->diffInHours($waktu_keluar);
-            $nominal = 0;
-
-            if (strtolower($searchKendaraan->jenis) == "motor") {
-                if ($selisih <= 2) {
-                    $nominal = 2000;
-                } else {
-                    $next_time = round($selisih - 2);
-                    $nominal = 1000 * $next_time + 4000;
-                }
-            } else {
-                if ($selisih <= 2) {
-                    $nominal = 4000;
-                } else {
-                    $next_time = round($selisih - 2);
-                    $nominal = 2000 * $next_time + 4000;
-                }
-            }
-
-            $updateParkir->update([
-                "keluar" => $waktu_keluar,
-                "harga" => $nominal
-            ]);
-
-            $invoice = "PARKEY_TEST_" . Str::random(6) . mt_rand(0, 9999);
-            $generatePayment = $generateQRPayment->create([
-                "parkir_id" => $updateParkir->parkir_id,
-                "invoice_id" => $invoice,
-                "nominal" => $nominal
-            ]);
-
-            return response()->json($generatePayment);
-        }
-
-        return response()->json(["message" => "Parameter type tidak dikenali."], 404);
+    if (!$userId) {
+        return response()->json([
+            "success" => false,
+            "message" => "user_id harus dikirim"
+        ], 400);
     }
 
-    /**
-     * Simpan kendaraan baru
-     */
+    $kendaraan = Kendaraan::where('users_id', $userId)->get();
+
+    return response()->json([
+        "success" => true,
+        "data" => $kendaraan
+    ], 200);
+}
+
+
     public function store(Request $request)
     {
-        $request->validate([
-            'plat_nomor' => 'required',
+        // Validasi input
+             $request->validate([
+            'plat_nomor' => 'required|unique:kendaraans',
             'jenis' => 'required',
             'merk' => 'required',
             'model' => 'required',
@@ -91,74 +45,68 @@ class KendaraanController extends Controller
             'tahun' => 'required',
             'user_id' => 'required'
         ]);
-
-        // Upload foto jika ada
+        // Upload Foto Kendaraan
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('kendaraan', 'public');
+            try {
+                $fotoPath = $request->file('foto')->store('kendaraan', 'public');
+            } catch (\Exception $e) {
+                return response()->json([
+                    "success" => false,
+                    "message" => "Gagal upload foto kendaraan",
+                    "error" => $e->getMessage()
+                ], 500);
+            }
         }
 
-        // Buat QR
-        $writer = new PngWriter();
-        $qr = new QrCode($request->plat_nomor);
-        $result = $writer->write($qr);
-        $randomkey = strtolower(Str::random(32)) . ".png";
-        $path = "images/" . $randomkey;
-        $result->saveToFile(public_path($path));
+        // Generate QR Code
+        $qrPath = null;
+        try {
+            $imagesDir = public_path('images');
+            if (!file_exists($imagesDir)) {
+                mkdir($imagesDir, 0755, true);
+            }
 
-        $kendaraan = Kendaraan::create([
-            'plat_nomor' => $request->plat_nomor,
-            'jenis' => $request->jenis,
-            'merk' => $request->merk,
-            'model' => $request->model,
-            'warna' => $request->warna,
-            'tahun' => $request->tahun,
-            'foto' => $fotoPath,
-            'pemilik' => $request->pemilik,
-            'qris' =>  $path,
-            'users_id' => $request->user_id
-        ]);
+            $writer = new PngWriter();
+            $qr = new QrCode($request->plat_nomor);
+            $result = $writer->write($qr);
+            $randomKey = strtolower(Str::random(32)) . ".png";
+            $qrPath = "images/" . $randomKey;
+            $result->saveToFile(public_path($qrPath));
+        } catch (\Exception $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "QR Code gagal dibuat. Pastikan GD extension aktif.",
+                "error" => $e->getMessage()
+            ], 500);
+        }
+
+        // Simpan kendaraan ke DB
+        try {
+            $kendaraan = Kendaraan::create([
+                'plat_nomor' => $request->plat_nomor,
+                'jenis' => $request->jenis,
+                'merk' => $request->merk,
+                'model' => $request->model,
+                'warna' => $request->warna,
+                'tahun' => $request->tahun,
+                'foto' => $fotoPath,
+                'pemilik' => $request->pemilik ?? 'User',
+                'qris' => $qrPath,
+                'users_id' => $request->user_id // disesuaikan dengan migration
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Gagal menyimpan kendaraan",
+                "error" => $e->getMessage()
+            ], 500);
+        }
 
         return response()->json([
+            "success" => true,
             "message" => "Kendaraan berhasil ditambahkan",
             "data" => $kendaraan
         ], 201);
     }
-
-    /**
-     * Ambil semua kendaraan
-     */
-    public function index(Request $request)
-    {
-        $user_id = $request->query('user_id');
-
-        $kendaraan = Kendaraan::where('users_id', $user_id)->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $kendaraan
-        ]);
-    }
-
-    /**
-     * Hapus kendaraan
-     */
-    public function destroy($id)
-    {
-        $kendaraan = Kendaraan::find($id);
-
-        if (!$kendaraan) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kendaraan tidak ditemukan'
-            ], 404);
-        }
-
-        $kendaraan->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Kendaraan berhasil dihapus'
-        ]);
-    }
-}
+} // <= pastikan kurung ini ada

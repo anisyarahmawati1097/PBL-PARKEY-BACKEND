@@ -16,10 +16,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // ROUTE KENDARAAN
-Route::post('/kendaraan/store', [KendaraanController::class, 'store']);
+Route::middleware('auth:sanctum')->post('/kendaraan/store', [KendaraanController::class, 'store']);
 Route::get('/kendaraan', [KendaraanController::class, 'index']);
-Route::delete('/kendaraan/{id}', [KendaraanController::class, 'destroy']);
-Route::post('/kendaraan/park', [KendaraanController::class, "park"]);
+// Route::delete('/kendaraan/{id}', [KendaraanController::class, 'destroy']);
+// Route::post('/kendaraan/park', [KendaraanController::class, "park"]);
 
 // ROUTE PENGENDARA
 Route::get('/pengendara', [PengendaraController::class, 'index']);
