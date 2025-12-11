@@ -6,28 +6,41 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('parkirs', function (Blueprint $table) {
             $table->id();
             $table->string('parkir_id');
+
+            // Relasi ke lokasis
+            $table->unsignedBigInteger('id_lokasi');
+            $table->foreign('id_lokasi')
+                  ->references('id_lokasi')
+                  ->on('lokasis')
+                  ->onDelete('cascade');
+
+            // Relasi ke slots
+            $table->unsignedBigInteger('id_slot')->nullable();
+            $table->foreign('id_slot')
+                  ->references('id_slot')
+                  ->on('slots')
+                  ->onDelete('set null');
+
+            // Timestamps parkir
             $table->timestamp('masuk');
             $table->timestamp('keluar')->nullable();
-            $table->integer('harga')->default(0);
 
+            // Relasi ke kendaraans
             $table->unsignedBigInteger('kendaraans_id');
-            $table->foreign('kendaraans_id')->references('id')->on('kendaraans')->onDelete('cascade');
+            $table->foreign('kendaraans_id')
+                  ->references('id')
+                  ->on('kendaraans')
+                  ->onDelete('cascade');
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('parkirs');

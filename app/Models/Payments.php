@@ -7,18 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payments extends Model
 {
-    /** @use HasFactory<\Database\Factories\PaymentsFactory> */
     use HasFactory;
 
     protected $fillable = [
         'invoice_id',
         'payment_string',
         'status',
-        'parkirs_id',
+        'parkirs_id'
     ];
 
-    public function parkirs()
+    public function parkir()
     {
-        return $this->belongsTo(Parkir::class);
+        return $this->belongsTo(Parkir::class, 'parkirs_id');
     }
 }

@@ -6,33 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('admins', function (Blueprint $table) {
-            $table->id('id_admin');
-            $table->string('nama_admin');
-            $table->string('username')->unique();
-            $table->string('password');
+        Schema::create('slots', function (Blueprint $table) {
+            $table->id('id_slot');
 
-            // Relasi ke tabel lokasis
-            $table->unsignedBigInteger('id_lokasi')->nullable();
+            $table->unsignedBigInteger('id_lokasi');
             $table->foreign('id_lokasi')
                   ->references('id_lokasi')
                   ->on('lokasis')
                   ->onDelete('cascade');
+            $table->integer('slot'); // jumlah slot tersedia
+            $table->enum('status', ['available', 'terisi', 'penuh'])->default('available');
 
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('admins');
+        Schema::dropIfExists('slots');
     }
 };

@@ -16,4 +16,10 @@ class LokasiController extends Controller
     {
         return Lokasi::select('nama', 'total_slot', 'occupied_slot')->get();
     }
+
+    public function harga()
+{
+    return $this->hasMany(Harga::class, 'id_lokasi');
+}
+
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Harga;
 
 class Kendaraan extends Model
 {
@@ -17,15 +18,21 @@ class Kendaraan extends Model
         'qris',
         'users_id',
         'pemilik',
+        'qr_token' // <--- penting
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'users_id');
     }
 
     public function parkirs()
     {
         return $this->hasMany(Parkir::class, 'kendaraans_id');
     }
+    public function harga()
+    {
+        return $this->hasMany(Harga::class, 'jenis_kendaraan', 'jenis');
+    }
+
 }
