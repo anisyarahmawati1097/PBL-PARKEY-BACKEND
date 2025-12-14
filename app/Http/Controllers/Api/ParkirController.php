@@ -2,16 +2,29 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use App\Models\Slot;
+use App\Models\Harga;
 use App\Models\Parkir;
 use App\Models\Kendaraan;
-use App\Models\Harga;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+
+use App\Http\Controllers\Controller;
 
 class ParkirController extends Controller
 {
+
+    public function pembayaran(Request $request,$id) {
+        $parkir_id = $request->query('parkir_id');
+        $parkir = Parkir::where('parkir_id', $id)->with('payment')->first();
+        if(!$parkir){
+            return response()->json(['message' => "Parkir tidak ditemukan."],404);
+        }
+        Log::info("PEMBAYARAN PARKIR : " . $parkir);
+        return response()->json(['message' => "Parkir ditemukan", 'data' => $parkir], 200);
+    }
     // ================= CARI PARKIR DENGAN PARKIR ID ============
     public function parkir_plat(Request $request)
     {
@@ -25,7 +38,7 @@ class ParkirController extends Controller
         }
 
         $parkir = Parkir::where('parkir_id', $id)
-                        ->with('payment')
+                        ->with('payments')
                         ->first();
 
         if (!$parkir) {
@@ -198,10 +211,9 @@ class ParkirController extends Controller
     {
         $user = $request->user();
 
-        $kendaraanIds = Kendaraan::where('users_id', $user->id)
-                                 ->pluck('id');
+        $kendaraanId = Kendaraan::where('users_id', $user->id)->pluck("id");
 
-        if ($kendaraanIds->isEmpty()) {
+        if (!$kendaraanId) {
             return response()->json([
                 "status"  => "empty",
                 "message" => "Pengendara belum mendaftarkan kendaraan"
@@ -209,7 +221,7 @@ class ParkirController extends Controller
         }
 
         $riwayat = Parkir::with(['lokasi', 'kendaraans'])
-            ->whereIn('kendaraans_id', $kendaraanIds)
+            ->whereIn('kendaraans_id', $kendaraanId)
             ->whereNotNull('keluar')
             ->orderBy('id', 'desc')
             ->get();

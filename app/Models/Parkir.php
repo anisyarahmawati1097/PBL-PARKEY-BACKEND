@@ -16,6 +16,7 @@ class Parkir extends Model
         'masuk',
         'keluar',
         'parkir_id',
+        'harga',
         'kendaraans_id'
     ];
 
@@ -30,9 +31,10 @@ class Parkir extends Model
     }
 
     public function payment()
-    {
-        return $this->hasOne(Payments::class, 'parkirs_id');
-    }
+{
+    return $this->hasOne(Payments::class, 'parkirs_id');
+}
+
 
     public function lokasi()
     {

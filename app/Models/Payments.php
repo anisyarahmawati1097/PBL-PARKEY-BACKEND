@@ -13,11 +13,15 @@ class Payments extends Model
         'invoice_id',
         'payment_string',
         'status',
+        'link_payment',
         'parkirs_id'
     ];
 
     public function parkir()
-    {
-        return $this->belongsTo(Parkir::class, 'parkirs_id');
-    }
+{
+    return $this->belongsTo(Parkir::class, 'parkirs_id');
+}
+
+
+
 }

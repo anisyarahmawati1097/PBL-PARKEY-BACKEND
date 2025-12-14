@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('invoice_id');
             $table->string('payment_string');
+            $table->string('link_payment')->nullable();
             $table->string("status")->default("pending");
 
             $table->unsignedBigInteger('parkirs_id');

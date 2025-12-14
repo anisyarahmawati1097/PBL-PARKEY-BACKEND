@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('parkir_id');
 
+            $table->integer('harga')->default(0);
+
             // Relasi ke lokasis
             $table->unsignedBigInteger('id_lokasi');
             $table->foreign('id_lokasi')
@@ -27,7 +29,7 @@ return new class extends Migration
                   ->onDelete('set null');
 
             // Timestamps parkir
-            $table->timestamp('masuk');
+            $table->timestamp('masuk')->nullable();
             $table->timestamp('keluar')->nullable();
 
             // Relasi ke kendaraans

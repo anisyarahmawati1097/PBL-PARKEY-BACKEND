@@ -26,6 +26,9 @@ class Kendaraan extends Model
         return $this->belongsTo(User::class, 'users_id');
     }
 
+    public function parkir_out_null() {
+        return $this->hasMany(Parkir::class, 'kendaraans_id')->whereNotNull("keluar");
+    }
     public function parkirs()
     {
         return $this->hasMany(Parkir::class, 'kendaraans_id');

@@ -6,6 +6,10 @@ use Midtrans\Config;
 use Midtrans\CoreApi;
 use App\Models\Parkir;
 use App\Models\Payments;
+use Endroid\QrCode\QrCode;
+use Illuminate\Support\Str;
+use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\Log;
 
 class GenerateQRPayment
 {
@@ -28,6 +32,19 @@ class GenerateQRPayment
             ],
         ];
 
+        // URL aplikasi
+        $url = config('app.url') .'/pay?parkId=' . $data['parkir_id'];
+
+        // Generate QR
+        $writer = new PngWriter;
+        $qr = new QrCode($url);
+        $result = $writer->write($qr);
+
+
+        $filename = strtolower(Str::random(32)).'.png';
+        $path = 'images/pembayaran/' . $filename;
+        $result->saveToFile(public_path($path));
+
         try {
             $response = CoreApi::charge($transaction_data);
 
@@ -36,14 +53,16 @@ class GenerateQRPayment
                 "payment_string" => $response->actions[0]->url,
                 "status" => $response->transaction_status,
                 "parkirs_id" => $searchParkir->id,
-            ])->load("parkirs.kendaraans");
+                "link_payment" => $path
+            ])->load("parkir.kendaraans");
 
-
+            Log::info("PAYMENTS :" . $createPayment);
             if (!$createPayment) {
                 return ["message" => "Gagal membuat pembayaran."];
             }
             return $createPayment;
         } catch (\Exception $e) {
+            Log::info($e);
             return ["message" => "Gagal membuat QRIS by Midtrans.", "hint" => $e->getMessage()];
         }
     }

@@ -27,7 +27,6 @@ return new class extends Migration
                 'mobil',
                 'pickup',
                 'truck',
-                'bus'
             ]);
 
             // Harga 2 jam pertama

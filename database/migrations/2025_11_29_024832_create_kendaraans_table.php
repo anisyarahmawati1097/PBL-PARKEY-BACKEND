@@ -14,7 +14,12 @@ return new class extends Migration
         Schema::create('kendaraans', function (Blueprint $table) {
             $table->id();
             $table->string('plat_nomor');
-            $table->string('jenis'); // Mobil/Motor/Truk/Pickup
+            $table->enum('jenis', [
+                'motor',
+                'mobil',
+                'pickup',
+                'truck',
+            ]);
             $table->string('merk');
             $table->string('model');
             $table->string('warna');
