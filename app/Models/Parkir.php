@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Payments;
-use App\Models\Slot;
 
 class Parkir extends Model
 {
@@ -17,11 +15,11 @@ class Parkir extends Model
         'keluar',
         'parkir_id',
         'harga',
-        'kendaraans_id'
+        'kendaraans_id',
     ];
 
     protected $casts = [
-        'masuk'  => 'datetime',
+        'masuk' => 'datetime',
         'keluar' => 'datetime',
     ];
 
@@ -31,10 +29,9 @@ class Parkir extends Model
     }
 
     public function payment()
-{
-    return $this->hasOne(Payments::class, 'parkirs_id');
-}
-
+    {
+        return $this->hasOne(Payments::class, 'parkirs_id');
+    }
 
     public function lokasi()
     {
@@ -42,8 +39,12 @@ class Parkir extends Model
     }
 
     public function slot()
-{
-    return $this->belongsTo(Slot::class, 'id_slot');
-}
+    {
+        return $this->belongsTo(Slot::class, 'id_slot');
+    }
 
+    public function admin()
+    {
+        return $this->belongsTo(Admin::class, 'id_admin');
+    }
 }

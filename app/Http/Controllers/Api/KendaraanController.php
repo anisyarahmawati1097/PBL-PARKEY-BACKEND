@@ -2,48 +2,48 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Admin;
-use App\Models\Parkir;
-use App\Models\Kendaraan;
-use App\Models\Harga;
-
-use Endroid\QrCode\QrCode;
-use Illuminate\Support\Str;
-
-use Illuminate\Http\Request;
-use App\Services\GenerateQRPayment;
-
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
+use App\Models\Harga;
+use App\Models\Kendaraan;
+use App\Models\Parkir;
+use App\Services\GenerateQRPayment;
+use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class KendaraanController extends Controller
 {
-
-    public function pay(Request $request) {
-        $username_admin = $request->username_admin;
-        $admin = Admin::where("username", $request->username_admin)->first();
-        $parkir = Parkir::where('parkir_id', $request->parkId)->with(['payment.parkirs.lokasi','admin'])->first();
-        if($username_admin !== $parkir->admin->username){
-            return redirect()->back()->with(["status" => 404,"message" => 'Mohon konfirmasi oleh Admin yang sama saat Parkir.']);
-        }
-        return redirect('/pay?parkId='.$request->parkId)->with(["status" => 500, "message" => '',"data" => $parkir]);
-    }
-
-    public function pay_view(Request $request) {
-        $parkId = $request->query("parkId");
-        if(!$parkId) {
-            return response()->json(["message" => "Park id tidak ada"],404);
+    public function pay(Request $request)
+    {
+        $admin_req = $request->username_admin;
+        $admin = Admin::where('username', $admin_req)->first();
+        $parkir = Parkir::where('parkir_id', $request->parkId)->with(['payment.parkirs.lokasi', 'admin'])->first();
+        if (!$admin) {
+            return redirect()->back()->with(['status' => 404, 'message' => 'Mohon konfirmasi oleh Admin yang sama saat Parkir.']);
         }
 
-        $parkir = Parkir::where("parkir_id", $parkId)->with(['admin','kendaraans','lokasi'])->first();
-        return view('pay',["data" => $parkir, "parkId" => $parkId]);
+        return redirect('/pay?parkId='.$request->parkId)->with(['status' => 500, 'message' => '', 'data' => $parkir, "admin" => $admin]);
     }
+
+    public function pay_view(Request $request)
+    {
+        $parkId = $request->query('parkId');
+        if (! $parkId) {
+            return response()->json(['message' => 'Park id tidak ada'], 404);
+        }
+
+        $parkir = Parkir::where('parkir_id', $parkId)->with(['admin', 'kendaraans', 'lokasi'])->first();
+
+        return view('pay', ['data' => $parkir, 'parkId' => $parkId]);
+    }
+
     /**
      * MASUK / KELUAR PARKIR
      */
-
-       public function park_view(Request $request)
+    public function park_view(Request $request)
     {
         // Ambil token dari query ?token=xxx
         $token = $request->query('token');
@@ -58,8 +58,9 @@ class KendaraanController extends Controller
             return response()->json(['message' => 'QR tidak valid'], 404);
         }
 
-        return view("parkir", ["token_parkir" => $token, "data" => $kendaraan]);
+        return view('parkir', ['token_parkir' => $token, 'data' => $kendaraan]);
     }
+
     // ----
     public function park(Request $request, GenerateQRPayment $generateQRPayment)
     {
@@ -69,13 +70,12 @@ class KendaraanController extends Controller
          * 🚗   MASUK
          * ==========================
          */
-
-        $admin = Admin::where("username", $request->username_admin)->with('lokasi')->first();
-        if (!$admin) {
+        $admin = Admin::where('username', $request->username_admin)->with('lokasi')->first();
+        if (! $admin) {
             return response()->json(['message' => 'Username admin tidak ditemukan.'], 404);
         }
 
-        if(!$admin->lokasi){
+        if (! $admin->lokasi) {
             return response()->json(['message' => 'Lokasi tidak ada pada admin.'], 404);
         }
 
@@ -87,7 +87,7 @@ class KendaraanController extends Controller
 
         $parkirAktif = $kendaraan->parkirs()->whereNull('keluar')->first();
 
-        if (!$parkirAktif) {
+        if (! $parkirAktif) {
             $createParkir = Parkir::create([
                 'id_lokasi' => $admin->lokasi->id_lokasi,
                 'masuk' => now('Asia/Jakarta'),
@@ -95,7 +95,8 @@ class KendaraanController extends Controller
                 'parkir_id' => strtoupper(Str::random(6)),
             ])->load('kendaraans');
 
-            Log::info("INI IN : ". $createParkir);
+            Log::info('INI IN : '.$createParkir);
+
             return response()->json([
                 'status' => 'IN',
                 'message' => 'Kendaraan berhasil masuk',
@@ -111,22 +112,23 @@ class KendaraanController extends Controller
         $waktuKeluar = now('Asia/Jakarta');
         $selisih = $parkirAktif->masuk->diffInHours($waktuKeluar);
 
-        $harga = Harga::where("id_lokasi", $admin->lokasi->id_lokasi)->first();
+        $harga = Harga::where('id_lokasi', $admin->lokasi->id_lokasi)->first();
 
-        $nominal = 5000;
-        // if (strtolower($harga->jenis_kendaraan) == strtolower($kendaraan->jenis)){
-        //     Log::info("TEST HARGA : ". $nominal);
-        //     $nominal = $selisih <= 2 ? $harga->harga : $harga->harga + ($selisih - 2) * $harga->tambahan_per_jam;
-        //     Log::info("TEST HARGA 2: ". $nominal);
-        // }
+        $nominal = 0;
+        if (strtolower($harga->jenis_kendaraan) == strtolower($kendaraan->jenis)) {
+            $nominal = $selisih <= 2 ? $harga->harga : $harga->harga + ($selisih - 2) * $harga->tambahan_per_jam;
+        }
 
+        if ($nominal == 0) {
+            $nominal = 4000;
+        }
         $parkirAktif->update([
             'keluar' => $waktuKeluar,
             'harga' => $nominal,
         ]);
-        Log::info("INI OUT : ". $parkirAktif);
+        Log::info('INI OUT : '.$parkirAktif);
         // Generate QR pembayaran
-        $invoice = 'PARKEY_' . strtoupper(Str::random(6)) . mt_rand(0, 9999);
+        $invoice = 'PARKEY_'.strtoupper(Str::random(6)).mt_rand(0, 9999);
 
         $generatePayment = $generateQRPayment->create([
             'parkir_id' => $parkirAktif->parkir_id,
@@ -140,6 +142,7 @@ class KendaraanController extends Controller
             'data' => $generatePayment,
         ]);
     }
+
     /**
      * SIMPAN KENDARAAN BARU
      */
@@ -165,13 +168,12 @@ class KendaraanController extends Controller
         $qrToken = Str::random(64);
 
         // URL aplikasi
-        $url = config('app.url') .'/api/park?token='. $qrToken;
+        $url = config('app.url').'/api/park?token='.$qrToken;
 
         // Generate QR
         $writer = new PngWriter;
         $qr = new QrCode($url);
         $result = $writer->write($qr);
-
 
         $filename = strtolower(Str::random(32)).'.png';
         $path = 'images/'.$filename;

@@ -14,13 +14,13 @@
             min-height: 100vh;
             justify-content: center;
             align-items: center;
+            padding: 24px;
         }
 
         .container {
             border: 1px solid black;
             padding: 24px;
             border-radius: 4px;
-            width: 50%;
             background-color: rgb(0, 0, 0, .1)
         }
 
@@ -62,7 +62,7 @@
             font-size: 14px;
         }
 
-     button {
+        button {
             margin-top: 12px;
             flex: 1;
             padding: 6px;
@@ -76,103 +76,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>PARKEY - Konfirmasi Payment</title>
 </head>
 
 <body>
     <div class="container">
-        @if (session('data'))
-            <h2>Bayar ke Sandbox Midtrans</h2>
-            <hr>
+        <h2>Bayar ke Sandbox Midtrans</h2>
+        <div class="" style=" text-align: center; padding: 12px 0px;">
+            <image src="{{ $data->payment->payment_string }}" style="width: 256px; height: 256px;" />
+        </div>
+        <hr>
+        <div class="container_box">
+            <h4>Data Pembayan</h4>
+            <div class="box" style="cursor: pointer;" onclick="copyText()">
+                <p>Link Pembayaran :</p>
+                <p id="value_box" class="data_payment">{{ $data->payment->payment_string }} </p>
+            </div>
             <div class="box">
-                <p>Admin :</p>
-                <p>{{ session('data')->admin->nama_admin }}</p>
+                <p>Invoice Pembayaran :</p>
+                <p id="value_box">{{ $data->payment->invoice_id }} </p>
             </div>
-            <div class="container_box">
-                <h4>Data Pembayan</h4>
-                <div class="box">
-                    <p>Link Pembayaran :</p>
-                    <p id="value_box">{{ session('data')->payment->payment_string }} </p>
-                </div>
-                <div class="box">
-                    <p>Invoice Pembayaran :</p>
-                    <p id="value_box">{{ session('data')->payment->invoice_id }} </p>
-                </div>
-            </div>
+        </div>
 
-            <div class="container_box">
-                <h4>Data Parkir</h4>
-                <div class="box">
-                    <p>Parkir ID :</p>
-                    <p id="value_box">{{ session('data')->payment->parkirs->parkir_id }} </p>
-                </div>
-                <div class="box">
-                    <p>Masuk :</p>
-                    <p id="value_box">{{ session('data')->payment->parkirs->masuk }} </p>
-                </div>
-                <div class="box">
-                    <p>Keluar :</p>
-                    <p id="value_box">{{ session('data')->payment->parkirs->keluar }} </p>
-                </div>
+        <div class="container_box">
+            <h4>Data Parkir</h4>
+            <div class="box">
+                <p>Parkir ID :</p>
+                <p id="value_box">{{ $data->parkir_id }} </p>
             </div>
-            <a href="https://simulator.sandbox.midtrans.com/v2/qris/index" style="text-decoration: none; color:black;">
-                <button style="width: 100%;">
-                    Bayar Disini
-                </button>
-            </a>
-        @else
-            <h2>Konfirmasi Pembayaran oleh Admin</h2>
-            <hr>
-            <div class="container_box">
-                <h4>Data Kendaraan</h4>
-                <div class="box">
-                    <p>Plat Nomor :</p>
-                    <p id="value_box">{{ $data->kendaraans->plat_nomor }} </p>
-                </div>
-                <div class="box">
-                    <p>Warna :</p>
-                    <p id="value_box">{{ strtoupper($data->kendaraans->jenis) }} </p>
-                </div>
-                <div class="box">
-                    <p>Jenis :</p>
-                    <p id="value_box">{{ strtoupper($data->kendaraans->jenis) }} </p>
-                </div>
+            <div class="box">
+                <p>Masuk :</p>
+                <p id="value_box">{{ $data->masuk }} </p>
             </div>
-            <div class="container_box">
-                <h4>Lokasi</h4>
-                <div class="box">
-                    <p>Alamat :</p>
-                    <p id="value_box">{{ $data->lokasi->nama_lokasi }} - {{ $data->lokasi->alamat_lokasi }} </p>
-                </div>
+            <div class="box">
+                <p>Keluar :</p>
+                <p id="value_box">{{ $data->keluar }} </p>
             </div>
-            <div class="container_box">
-                <h4>Data Parkir</h4>
-                <div class="box">
-                    <p>Parkir ID :</p>
-                    <p id="value_box">{{ $data->parkir_id }} </p>
-                </div>
-                <div class="box">
-                    <p>Masuk :</p>
-                    <p id="value_box">{{ $data->masuk }} </p>
-                </div>
-                <div class="box">
-                    <p>Keluar :</p>
-                    <p id="value_box">{{ $data->keluar }} </p>
-                </div>
-            </div>
-            <form action="/pay" method="POST">
-                @method('POST')
-                @csrf
-                <label for="username_admin">Masukan Username Admin ( Validasi Konfirmasi ) : </label>
-                <input type="text" name="username_admin" id="username_admin">
-                <input type="hidden" name="parkId" value="{{ $parkId }}">
-                <button type="submit">Konfirmasi</button>
-            </form>
-        @endif
-        @if (session('status') == 404)
-            <p style="text-align: center; color: red; margin-top: 1em;">{{ session('message') }}</p>
-        @endif
+        </div>
+        <a href="https://simulator.sandbox.midtrans.com/v2/qris/index" style="text-decoration: none; color:black;">
+            <button style="width: 100%;">
+                Bayar Disini
+            </button>
+        </a>
+
     </div>
 </body>
+<script>
+    function copyText() {
+        const text = document.querySelector(".data_payment").innerText;
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                alert("Link Pembayaran Berhasil Di Copy!");
+            })
+            .catch(err => {
+                console.error("Gagal copy:", err);
+            });
+    }
+</script>
 
 </html>

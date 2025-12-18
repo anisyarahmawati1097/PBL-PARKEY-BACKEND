@@ -75,6 +75,7 @@ Route::get('/dashboard/slot-summary', function () {
 Route::get('/park', [KendaraanController::class, 'park_view']);
 Route::post('/park', [KendaraanController::class, 'park']);
 Route::get('/parkir/aktivitas', [ParkirController::class, 'aktivitas']);
+
 Route::get('/pembayaran/{id}', [ParkirController::class, 'pembayaran']);
 
 // Route::get('/parkir/masuk', [ParkirController::class, 'kendaraanMasuk']);

@@ -25,6 +25,7 @@ class ParkirController extends Controller
         Log::info("PEMBAYARAN PARKIR : " . $parkir);
         return response()->json(['message' => "Parkir ditemukan", 'data' => $parkir], 200);
     }
+
     // ================= CARI PARKIR DENGAN PARKIR ID ============
     public function parkir_plat(Request $request)
     {

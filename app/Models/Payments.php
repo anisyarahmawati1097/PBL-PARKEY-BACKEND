@@ -17,7 +17,7 @@ class Payments extends Model
         'parkirs_id'
     ];
 
-    public function parkir()
+    public function parkirs()
 {
     return $this->belongsTo(Parkir::class, 'parkirs_id');
 }

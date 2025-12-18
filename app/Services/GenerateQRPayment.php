@@ -54,9 +54,8 @@ class GenerateQRPayment
                 "status" => $response->transaction_status,
                 "parkirs_id" => $searchParkir->id,
                 "link_payment" => $path
-            ])->load("parkir.kendaraans");
+            ])->load("parkirs.kendaraans");
 
-            Log::info("PAYMENTS :" . $createPayment);
             if (!$createPayment) {
                 return ["message" => "Gagal membuat pembayaran."];
             }

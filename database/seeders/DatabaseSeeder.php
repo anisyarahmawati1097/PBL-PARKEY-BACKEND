@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
         ]);
         $this->call(HargaSeeder::class);
+        $this->call(SlotSeeder::class);
 
     }
 }
